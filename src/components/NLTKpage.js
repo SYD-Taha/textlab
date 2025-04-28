@@ -18,7 +18,7 @@ function NltkPage({ onActionTrigger }) {
   const analyzeText = async () => {
     setLoading(true);
     try {
-      const response = await axios.post(`http://127.0.0.1:5000/${selectedAction}`, { text });
+      const response = await axios.post(`https://teejay.pythonanywhere.com/${selectedAction}`, { text });
       setResult(response.data);
     } catch (error) {
       console.error('Error making API request', error);
@@ -28,11 +28,13 @@ function NltkPage({ onActionTrigger }) {
     }
   };
 
-  const triggerAction = (action, newText) => {
-    handleActionChange(action);
-    handleTextChange(newText);
+  const triggerAction = async (action, newText) => {
+    setSelectedAction(action);
+    setText(newText);
+    await new Promise(resolve => setTimeout(resolve, 50));  // slight delay
     analyzeText();
   };
+  
 
   const renderResult = () => {
     if (!result) return null;
