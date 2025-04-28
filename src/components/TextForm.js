@@ -4,7 +4,7 @@ export default function TextForm(props) {
   
   const [text, setText] = useState('');
   const [result, setResult] = useState(null);
-  const [loading, setLoading] = useState(false);
+  // const [loading, setLoading] = useState(false);
   const [selectedAction, setSelectedAction] = useState('tokenize');
   
   const handleUpClick = () => {
@@ -47,7 +47,7 @@ export default function TextForm(props) {
   }
 
   const analyzeText = async (action) => {
-    setLoading(true);
+    // setLoading(true);
     try {
       const response = await fetch(`http://127.0.0.1:5000/${action}`, {
         method: 'POST',
@@ -59,7 +59,7 @@ export default function TextForm(props) {
     } catch (error) {
       setResult({ error: 'Failed to fetch data' });
     } finally {
-      setLoading(false);
+      // setLoading(false);
     }
   }
 
