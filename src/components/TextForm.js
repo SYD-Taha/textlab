@@ -1,55 +1,52 @@
 import React, { useState } from 'react';
 
 export default function TextForm(props) {
-  
   const [text, setText] = useState('');
   const [result, setResult] = useState(null);
-  // const [loading, setLoading] = useState(false);
   const [selectedAction, setSelectedAction] = useState('tokenize');
-  
+
   const handleUpClick = () => {
     let newText = text.toUpperCase();
     setText(newText);
     props.showAlert("Converted to UpperCase!", "success");
-  }
+  };
 
   const handlelowClick = () => {
     let newText = text.toLowerCase();
     setText(newText);
     props.showAlert("Converted to LowerCase!", "success");
-  }
+  };
 
   const clear = () => {
     setText('');
     props.showAlert("Text Cleared!", "success");
-  }
+  };
 
   const speak = () => {
     let msg = new SpeechSynthesisUtterance();
     msg.text = text;
     window.speechSynthesis.speak(msg);
     props.showAlert("Speaking!", "success");
-  }
+  };
 
   const handleOnChange = (event) => {
     setText(event.target.value);
-  }
+  };
 
   const Copy = () => {
     navigator.clipboard.writeText(text);
     props.showAlert("Text Copied!", "success");
-  }
+  };
 
   const handleExtraSpaces = () => {
     let newText = text.split(/[ ]+/); 
     setText(newText.join(" "));
     props.showAlert("Extra Spaces Removed!", "success");
-  }
+  };
 
   const analyzeText = async (action) => {
-    // setLoading(true);
     try {
-      const response = await fetch(`https://teejay.pythonanywhere.com/${action}`, {
+      const response = await fetch(`http://127.0.0.1:5000/${action}`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ text })
@@ -60,75 +57,75 @@ export default function TextForm(props) {
     } catch (error) {
       console.error('Error:', error);
       setResult({ error: 'Failed to fetch data' });
-    } finally {
-      // setLoading(false);
     }
-  }
+  };
 
   const handleActionChange = (action) => {
     setSelectedAction(action);
     analyzeText(action);
-  }
+  };
 
   const renderResult = () => {
     if (!result) return null;
     if (result.error) return <p style={{ color: 'red' }}>{result.error}</p>;
 
-    // Render different results based on selected action
-    if (selectedAction === 'tokenize' && result.tokens) {
-      return (
-        <div>
-          <h3>Tokens:</h3>
-          <ul>
-            {result.tokens.map((token, index) => (
-              <li key={index}>{token}</li>
-            ))}
-          </ul>
-        </div>
-      );
-    }
+    switch (selectedAction) {
+      case 'tokenize':
+        return result.tokens && (
+          <div>
+            <h3>Tokens:</h3>
+            <ul>
+              {result.tokens.map((token, index) => <li key={index}>{token}</li>)}
+            </ul>
+          </div>
+        );
 
-    if (selectedAction === 'sentiment' && result.sentiment) {
-      return (
-        <div>
-          <h3>Sentiment Analysis:</h3>
-          <ul>
-            <li>Positive: {result.sentiment.pos}</li>
-            <li>Neutral: {result.sentiment.neu}</li>
-            <li>Negative: {result.sentiment.neg}</li>
-            <li>Compound: {result.sentiment.compound}</li>
-          </ul>
-        </div>
-      );
-    }
+      case 'sentiment':
+        return result.sentiment && (
+          <div>
+            <h3>Sentiment Analysis:</h3>
+            <ul>
+              <li>Positive: {result.sentiment.pos}</li>
+              <li>Neutral: {result.sentiment.neu}</li>
+              <li>Negative: {result.sentiment.neg}</li>
+              <li>Compound: {result.sentiment.compound}</li>
+            </ul>
+          </div>
+        );
 
-    if (selectedAction === 'keywords' && result.keywords) {
-      return (
-        <div>
-          <h3>Extracted Keywords:</h3>
-          <ul>
-            {result.keywords.map((keyword, index) => (
-              <li key={index}>{keyword}</li>
-            ))}
-          </ul>
-        </div>
-      );
-    }
+      case 'keywords':
+        return result.keywords && (
+          <div>
+            <h3>Extracted Keywords:</h3>
+            <ul>
+              {result.keywords.map((keyword, index) => <li key={index}>{keyword}</li>)}
+            </ul>
+          </div>
+        );
 
-    if (selectedAction === 'ner' && result.entities) {
-      return (
-        <div>
-          <h3>Named Entity Recognition (NER):</h3>
-          <ul>
-            {result.entities.map((entity, index) => (
-              <li key={index}>{entity}</li>
-            ))}
-          </ul>
-        </div>
-      );
-    }
+      case 'ner':
+        return result.entities && (
+          <div>
+            <h3>Named Entity Recognition (NER):</h3>
+            <ul>
+              {result.entities.map((entity, index) => (
+                <li key={index}>{entity.entity} ({entity.type})</li>
+              ))}
+            </ul>
+          </div>
+        );
 
-    return <p>No data to display.</p>;
+      case 'summarize':
+        return result.summary && (
+          <div>
+            <h3>Summary:</h3>
+            <p style={{ backgroundColor: "#e8f5e9", padding: "10px", borderRadius: "5px" }}>{result.summary}</p>
+          </div>
+        );
+
+      default:
+        return <p>No data to display.</p>;
+    }
   };
 
   return (
@@ -146,61 +143,26 @@ export default function TextForm(props) {
           </textarea>
         </div>
 
-        <button disabled={text.length === 0} className="btn btn-primary mx-2 my-1" onClick={handleUpClick}>Convert to Uppercase</button>
-        <button disabled={text.length === 0} className="btn btn-primary mx-2 my-1" onClick={handlelowClick}>Convert to lowercase</button>        
+        <button disabled={text.length === 0} className="btn btn-primary mx-2 my-1" onClick={handleUpClick}>Uppercase</button>
+        <button disabled={text.length === 0} className="btn btn-primary mx-2 my-1" onClick={handlelowClick}>Lowercase</button>
         <button disabled={text.length === 0} className="btn btn-primary mx-2 my-1" onClick={speak}>Speak</button>
         <button disabled={text.length === 0} className="btn btn-primary mx-2 my-1" onClick={clear}>Clear</button>
-        <button disabled={text.length === 0} className="btn btn-primary mx-2 my-1" onClick={Copy}>Copy Text</button>
-        <button disabled={text.length === 0} className="btn btn-primary mx-2 my-1" onClick={handleExtraSpaces}>Remove Extra Spaces</button>
-        
-        <div className="container my-3" style={{ color: props.mode === 'dark' ? 'white' : 'black' }}>
-          <h2>Your Text summary</h2>
-          <p> {text.split(/\s+/).filter((element) => { return element.length !== 0 }).length} words and {text.length} characters</p>
-          <p> {0.008 * text.split(" ").filter((element) => { return element.length !== 0 }).length} Minutes read</p>
-          
-          <h3>Preview</h3>
-          <p>{text.length > 0 ? text : "Enter something to preview"}</p>
+        <button disabled={text.length === 0} className="btn btn-primary mx-2 my-1" onClick={Copy}>Copy</button>
+        <button disabled={text.length === 0} className="btn btn-primary mx-2 my-1" onClick={handleExtraSpaces}>Remove Spaces</button>
+
+        {/* NLP Buttons */}
+        <div className="mt-4">
+          <h3>Run NLP Actions</h3>
+          <button disabled={text.length === 0} className="btn btn-outline-info mx-1" onClick={() => handleActionChange('tokenize')}>Tokenize</button>
+          <button disabled={text.length === 0} className="btn btn-outline-info mx-1" onClick={() => handleActionChange('sentiment')}>Sentiment</button>
+          <button disabled={text.length === 0} className="btn btn-outline-info mx-1" onClick={() => handleActionChange('keywords')}>Keywords</button>
+          <button disabled={text.length === 0} className="btn btn-outline-info mx-1" onClick={() => handleActionChange('ner')}>NER</button>
+          <button disabled={text.length === 0} className="btn btn-outline-success mx-1" onClick={() => handleActionChange('summarize')}>Summarize</button>
         </div>
 
-        <hr className="my-4" /> {/* Horizontal Line for separation */}
-        
-        {/* New NLP Action Buttons Section */}
-        <div className="container my-3">
-          <h3>Use the new Implemented NLP Features</h3>
-          <div className="d-flex flex-wrap justify-content-start">
-            <button 
-              disabled={text.length === 0} 
-              className="btn btn-primary mx-2 my-1" 
-              onClick={() => handleActionChange('tokenize')}
-            >
-              Tokenize
-            </button>
-            <button 
-              disabled={text.length === 0} 
-              className="btn btn-primary mx-2 my-1" 
-              onClick={() => handleActionChange('sentiment')}
-            >
-              Sentiment Analysis
-            </button>
-            <button 
-              disabled={text.length === 0} 
-              className="btn btn-primary mx-2 my-1" 
-              onClick={() => handleActionChange('keywords')}
-            >
-              Extract Keywords
-            </button>
-            <button 
-              disabled={text.length === 0} 
-              className="btn btn-primary mx-2 my-1" 
-              onClick={() => handleActionChange('ner')}
-            >
-              Named Entity Recognition
-            </button>
-          </div>
+        <div className="mt-4">
+          {renderResult()}
         </div>
-
-        {/* Render Results */}
-        <div className="result-container" style={{ marginLeft: '20px', marginTop: '20px' }}>{renderResult()}</div>
       </div>
     </>
   );
